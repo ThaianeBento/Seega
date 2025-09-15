@@ -12,6 +12,7 @@ public class Jogo extends Publicador {
     private Peca[][] tabuleiro;
     private int pecasColocadas;
     private int pecasTurno;
+    private int jogadasSemCaptura = 0;
 
     private int selecionadaLinha = -1;
     private int selecionadaColuna = -1;
@@ -32,6 +33,23 @@ public class Jogo extends Publicador {
 
     public void mudarTurno() {
         jogadorAtual = (jogadorAtual == jogador1) ? jogador2 : jogador1;
+
+        //CRIAR VIEW EM VIEW
+        if (estado == Estado.JOGANDO) {
+            if (!temMovimentoPossivel(jogadorAtual)) {
+                Jogador outro = (jogadorAtual == jogador1) ? jogador2 : jogador1;
+
+                    if (!temMovimentoPossivel(outro)) {
+                    fimDeJogo("Nenhum jogador tem movimentos possíveis. Encerrando jogo.");
+                    return;
+                }
+
+                javax.swing.JOptionPane.showMessageDialog(null,
+                        "Jogador " + jogadorAtual.getId() + " não tem movimentos possíveis. Passa a vez!");
+                jogadorAtual = outro;
+            }
+        }
+
         notificar(); // avisa a view que mudou
     }
 
@@ -39,7 +57,6 @@ public class Jogo extends Publicador {
         if (estado != Estado.POSICIONANDO) return false;
 
         if (linha == 2 && coluna == 2) return false; //CENTRAL
-
         if (tabuleiro[linha][coluna] != null) return false;
 
         Peca peca = new Peca(jogadorAtual);
@@ -48,14 +65,17 @@ public class Jogo extends Publicador {
         pecasColocadas++;
         pecasTurno++;
 
+        if (pecasColocadas == 24) {
+            estado = Estado.JOGANDO;
+            jogadorAtual = jogador2; // segundo jogador começa na fase de movimento
+            pecasTurno = 0;
+            notificar();
+            return true;
+        }
+
         if (pecasTurno == 2) {
             pecasTurno = 0;
             mudarTurno();
-        }
-
-        if (pecasColocadas == 24) {
-            estado = Estado.JOGANDO;
-            jogadorAtual = jogador2;
         }
 
         notificar();
@@ -99,10 +119,14 @@ public class Jogo extends Publicador {
 
         boolean houveCaptura = capturar(novaLinha, novaColuna, peca.getDono());
 
-        if (!houveCaptura) {
+        if (houveCaptura) {
+            jogadasSemCaptura = 0;
+        } else {
+            jogadasSemCaptura++;
             mudarTurno();
         }
 
+        verificarFimDeJogo();
         return true;
     }
 
@@ -141,4 +165,75 @@ public class Jogo extends Publicador {
 
     public int getSelecionadaLinha() { return selecionadaLinha; }
     public int getSelecionadaColuna() { return selecionadaColuna; }
+
+    private void verificarFimDeJogo() {
+        if (jogador1.getPecas().isEmpty()) {
+            fimDeJogo("Jogador 2 venceu! Todas as peças do Jogador 1 foram capturadas.");
+        } else if (jogador2.getPecas().isEmpty()) {
+            fimDeJogo("Jogador 1 venceu! Todas as peças do Jogador 2 foram capturadas.");
+        }
+
+        if (jogadasSemCaptura >= 20) {
+            int p1 = contarPecas(jogador1);
+            int p2 = contarPecas(jogador2);
+
+            if (p1 > p2) {
+                fimDeJogo("Jogador 1 venceu por maioria de peças!");
+            } else if (p2 > p1) {
+                fimDeJogo("Jogador 2 venceu por maioria de peças!");
+            } else {
+                fimDeJogo("Empate! Ambos os jogadores têm o mesmo número de peças.");
+            }
+        }
+    }
+
+    private void fimDeJogo(String mensagem) {
+        estado = null; // jogo encerrado
+        javax.swing.JOptionPane.showMessageDialog(null, mensagem);
+        notificar();
+    }
+
+    private int contarPecas(Jogador jogador) {
+        int count = 0;
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (tabuleiro[i][j] != null && tabuleiro[i][j].getDono() == jogador) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private boolean temMovimentoPossivel(Jogador jogador) {
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (tabuleiro[i][j] != null && tabuleiro[i][j].getDono() == jogador) {
+                    int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};
+                    for (int[] d : dirs) {
+                        int ni = i + d[0];
+                        int nj = j + d[1];
+                        if (estaNoTabuleiro(ni,nj) && tabuleiro[ni][nj] == null) {
+                            return true; // existe pelo menos um movimento
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void reset() {
+        this.estado = Estado.POSICIONANDO;
+        this.tabuleiro = new Peca[5][5];
+        this.jogador1 = new Jogador(1);
+        this.jogador2 = new Jogador(2);
+        this.jogadorAtual = jogador1;
+        this.pecasColocadas = 0;
+        this.pecasTurno = 0;
+        this.jogadasSemCaptura = 0;
+        this.selecionadaLinha = -1;
+        this.selecionadaColuna = -1;
+        notificar();
+    }
 }
