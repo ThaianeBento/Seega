@@ -10,5 +10,6 @@ public class Main {
             JogoController controller = new JogoController(jogo);
             new JogoView(jogo, controller);
 
+
     }
 }

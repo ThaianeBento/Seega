@@ -68,6 +68,16 @@ public class Jogo extends Publicador {
             estado = Estado.JOGANDO;
             jogadorAtual = jogador2; // segundo jogador começa na fase de movimento
             pecasTurno = 0;
+
+            if (!temMovimentoPossivel(jogadorAtual)) {
+                notificarMensagem("Jogador " + jogadorAtual.getId() + " não tem movimentos possíveis. Passa a vez!");
+                jogadorAtual = jogador1;
+
+                if (!temMovimentoPossivel(jogadorAtual)) {
+                    fimDeJogo("Nenhum jogador tem movimentos possíveis. Encerrando jogo.");
+                }
+            }
+
             notificar();
             return true;
         }
@@ -242,4 +252,9 @@ public class Jogo extends Publicador {
         this.selecionadaColuna = -1;
         notificar();
     }
+
+    public int getRodadasSemCaptura() {return this.jogadasSemCaptura;    }
+
+    public Jogador getJogador1() { return this.jogador1;    }
+    public Jogador getJogador2() { return this.jogador2;    }
 }
