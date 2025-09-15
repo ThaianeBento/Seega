@@ -34,19 +34,18 @@ public class Jogo extends Publicador {
     public void mudarTurno() {
         jogadorAtual = (jogadorAtual == jogador1) ? jogador2 : jogador1;
 
-        //CRIAR VIEW EM VIEW
         if (estado == Estado.JOGANDO) {
             if (!temMovimentoPossivel(jogadorAtual)) {
                 Jogador outro = (jogadorAtual == jogador1) ? jogador2 : jogador1;
 
-                    if (!temMovimentoPossivel(outro)) {
+                if (!temMovimentoPossivel(outro)) {
                     fimDeJogo("Nenhum jogador tem movimentos possíveis. Encerrando jogo.");
                     return;
                 }
 
-                javax.swing.JOptionPane.showMessageDialog(null,
-                        "Jogador " + jogadorAtual.getId() + " não tem movimentos possíveis. Passa a vez!");
+                notificarMensagem("Jogador " + jogadorAtual.getId() + " não tem movimentos possíveis. Passa a vez!");
                 jogadorAtual = outro;
+
             }
         }
 
@@ -150,7 +149,14 @@ public class Jogo extends Publicador {
                 if (tabuleiro[li][co].getDono() != dono &&
                         tabuleiro[l2][c2].getDono() == dono) {
                     if (!(li == 2 && co == 2)) {
+                        Peca pecaCapturada = tabuleiro[li][co];
+
                         tabuleiro[li][co] = null;
+
+                        if (pecaCapturada != null && pecaCapturada.getDono() != null) {
+                            pecaCapturada.getDono().getPecas().remove(pecaCapturada);
+                        }
+
                         capturou = true;
                     }
                 }
@@ -188,8 +194,8 @@ public class Jogo extends Publicador {
     }
 
     private void fimDeJogo(String mensagem) {
-        estado = null; // jogo encerrado
-        javax.swing.JOptionPane.showMessageDialog(null, mensagem);
+        estado = Estado.FIM; // jogo encerrado
+        notificarMensagem(mensagem);
         notificar();
     }
 

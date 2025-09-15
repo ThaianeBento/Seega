@@ -13,4 +13,11 @@ public class Publicador {
             o.atualizar();
         }
     }
+    public void notificarMensagem(String texto) {
+        for (Observer o : observers) {
+            if (o instanceof ObservadorMensagem) {
+                ((ObservadorMensagem) o).exibirMensagem(texto);
+            }
+        }
+    }
 }

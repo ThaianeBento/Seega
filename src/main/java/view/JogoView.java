@@ -4,12 +4,13 @@ import controller.JogoController;
 import model.Estado;
 import model.Jogo;
 import model.Peca;
+import observer.ObservadorMensagem;
 import observer.Observer;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class JogoView extends JFrame implements Observer {
+public class JogoView extends JFrame implements Observer, ObservadorMensagem {
     private Jogo jogo;
     private JogoController controller;
     private JButton[][] botoes;
@@ -56,7 +57,6 @@ public class JogoView extends JFrame implements Observer {
         setVisible(true);
     }
 
-
     @Override
     public void atualizar() {
         Peca[][] tabuleiro = jogo.getTabuleiro();
@@ -78,5 +78,10 @@ public class JogoView extends JFrame implements Observer {
 
         setTitle("Seega - Jogador " + jogo.getJogadorAtual().getId() +
                 " | Estado: " + jogo.getEstado());
+    }
+
+    @Override
+    public void exibirMensagem(String texto) {
+        javax.swing.JOptionPane.showMessageDialog(null, texto);
     }
 }
