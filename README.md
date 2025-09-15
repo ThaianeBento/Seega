@@ -35,7 +35,7 @@ Capturar todas as peças inimigas ou, caso o jogo chegue ao limite de 20 jogadas
 ---
 
 ## Fim de jogo
-- Um jogador vence se capturar todas as peças do adversário.
+- Um jogador vence se capturar todas as peças adversárias.
 - Se durante 20 jogadas consecutivas** não houver capturas, o jogo termina imediatamente.
     - O vencedor será aquele com mais peças no tabuleiro no momento.  
 
