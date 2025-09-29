@@ -1,11 +1,7 @@
 package model;
 
-import observer.Publicador;
-import observer.Observer;
-
-
 public class Jogo {
-   
+    // ======== Atributos ========
     private Estado estado;
     private Jogador jogador1;
     private Jogador jogador2;
@@ -16,12 +12,8 @@ public class Jogo {
     private int jogadasSemCaptura;
     private int selecionadaLinha = -1;
     private int selecionadaColuna = -1;
-    
-   
-    private final Publicador publicador = new Publicador();
 
-   
-    
+    // ======== Construtor ========
     public Jogo() {
         inicializar();
     }
@@ -39,22 +31,7 @@ public class Jogo {
         this.selecionadaColuna = -1;
     }
 
-    
-    
-    public void adicionarObserver(Observer observer) {
-        publicador.adicionarObserver(observer);
-    }
-    
-    public void removerObserver(Observer observer) {
-        publicador.removerObserver(observer);
-    }
-    
-    public Publicador getPublicador() {
-        return publicador;
-    }
-
- 
-    
+    // ======== Getters ========
     public Estado getEstado() { return estado; }
     public Jogador getJogadorAtual() { return jogadorAtual; }
     public Jogador getJogador1() { return jogador1; }
@@ -66,12 +43,26 @@ public class Jogo {
     public int getSelecionadaLinha() { return selecionadaLinha; }
     public int getSelecionadaColuna() { return selecionadaColuna; }
 
-   
+    // ======== Setters ========
+    public void setEstado(Estado estado) { this.estado = estado; }
+    public void setJogadorAtual(Jogador jogador) { this.jogadorAtual = jogador; }
+    public void setPecasColocadas(int pecasColocadas) { this.pecasColocadas = pecasColocadas; }
+    public void setPecasTurno(int pecasTurno) { this.pecasTurno = pecasTurno; }
+    public void setJogadasSemCaptura(int jogadasSemCaptura) { this.jogadasSemCaptura = jogadasSemCaptura; }
     
+    public void setSelecionada(int linha, int coluna) {
+        this.selecionadaLinha = linha;
+        this.selecionadaColuna = coluna;
+    }
+    
+    public void limparSelecao() {
+        this.selecionadaLinha = -1;
+        this.selecionadaColuna = -1;
+    }
+
+    // ======== Operações básicas do tabuleiro ========
     public Peca getPeca(int linha, int coluna) {
-        if (!posicaoValida(linha, coluna)) {
-            return null;
-        }
+        if (!posicaoValida(linha, coluna)) return null;
         return tabuleiro[linha][coluna];
     }
     
@@ -87,112 +78,11 @@ public class Jogo {
         }
     }
     
-    public boolean posicaoValida(int linha, int coluna) {
+    private boolean posicaoValida(int linha, int coluna) {
         return linha >= 0 && linha < 5 && coluna >= 0 && coluna < 5;
     }
-    
-    public boolean posicaoVazia(int linha, int coluna) {
-        // CORREÇÃO: Posição vazia significa não ter PEÇA, independente se é casa central
-        return posicaoValida(linha, coluna) && tabuleiro[linha][coluna] == null;
-    }
-    
-    public boolean isCasaCentral(int linha, int coluna) {
-        return linha == 2 && coluna == 2;
-    }
 
-   
-    
-    public void setEstado(Estado estado) {
-        this.estado = estado;
-    }
-    
-    public void setJogadorAtual(Jogador jogador) {
-        this.jogadorAtual = jogador;
-    }
-    
-    public void setPecasColocadas(int pecasColocadas) {
-        this.pecasColocadas = pecasColocadas;
-    }
-    
-    public void setPecasTurno(int pecasTurno) {
-        this.pecasTurno = pecasTurno;
-    }
-    
-    public void setJogadasSemCaptura(int jogadasSemCaptura) {
-        this.jogadasSemCaptura = jogadasSemCaptura;
-    }
-    
-    public void setSelecionada(int linha, int coluna) {
-        this.selecionadaLinha = linha;
-        this.selecionadaColuna = coluna;
-    }
-    
-    public void limparSelecao() {
-        this.selecionadaLinha = -1;
-        this.selecionadaColuna = -1;
-    }
-
-   
-    
-    public void incrementarPecasColocadas() {
-        this.pecasColocadas++;
-    }
-    
-    public void incrementarPecasTurno() {
-        this.pecasTurno++;
-    }
-    
-    public void incrementarJogadasSemCaptura() {
-        this.jogadasSemCaptura++;
-    }
-    
-    public void zerarJogadasSemCaptura() {
-        this.jogadasSemCaptura = 0;
-    }
-    
-    public void zerarPecasTurno() {
-        this.pecasTurno = 0;
-    }
-
-   
-    
-    public Jogador getOutroJogador() {
-        return (jogadorAtual == jogador1) ? jogador2 : jogador1;
-    }
-    
-    public int contarPecasNoTabuleiro(Jogador jogador) {
-        int count = 0;
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (tabuleiro[i][j] != null && tabuleiro[i][j].getDono() == jogador) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-    
-    public boolean temPecaDoJogador(Jogador jogador, int linha, int coluna) {
-        if (!posicaoValida(linha, coluna) || tabuleiro[linha][coluna] == null) {
-            return false;
-        }
-        return tabuleiro[linha][coluna].getDono() == jogador;
-    }
-    
-    public java.util.List<int[]> getPosicoesDasPecas(Jogador jogador) {
-        java.util.List<int[]> posicoes = new java.util.ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (temPecaDoJogador(jogador, i, j)) {
-                    posicoes.add(new int[]{i, j});
-                }
-            }
-        }
-        return posicoes;
-    }
-
-    
-    
+    // ======== Reset ========
     public void reset() {
         inicializar();
     }

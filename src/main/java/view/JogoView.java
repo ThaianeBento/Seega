@@ -4,17 +4,14 @@ import controller.JogoController;
 import model.Estado;
 import model.Jogo;
 import model.Jogador;
-import model.Peca;
 import observer.Observer;
 
 import javax.swing.*;
 import java.awt.*;
 
-
 public class JogoView extends JFrame implements Observer {
     private final JogoController controller;
     private final Jogo jogo;
-    
     
     private JButton[][] botoes;
     private JLabel lblStatus;
@@ -27,8 +24,7 @@ public class JogoView extends JFrame implements Observer {
         this.jogo = jogo;
         this.controller = controller;
         
-        
-        this.jogo.adicionarObserver(this);
+        this.controller.adicionarObserver(this);
         
         inicializarInterface();
     }
@@ -44,7 +40,7 @@ public class JogoView extends JFrame implements Observer {
     }
 
     private void configurarJanela() {
-        setTitle("Seega - MVC com seu Observer");
+        setTitle("Seega - MVC com Observer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 800);
         setLocationRelativeTo(null);
@@ -52,35 +48,35 @@ public class JogoView extends JFrame implements Observer {
     }
 
     private void criarComponentes() {
-        
-        lblStatus = new JLabel("Fase: Posicionamento", SwingConstants.CENTER);
+        // Labels de status
+        lblStatus = new JLabel("", SwingConstants.CENTER);
         lblStatus.setFont(new Font("Arial", Font.BOLD, 16));
         lblStatus.setOpaque(true);
         lblStatus.setBackground(new Color(240, 248, 255));
 
-        lblTurno = new JLabel("Turno: Jogador 1", SwingConstants.CENTER);
+        lblTurno = new JLabel("", SwingConstants.CENTER);
         lblTurno.setFont(new Font("Arial", Font.BOLD, 14));
         lblTurno.setOpaque(true);
         lblTurno.setBackground(Color.WHITE);
         lblTurno.setBorder(BorderFactory.createEtchedBorder());
 
-        lblPecasJ1 = new JLabel("Jogador 1: 0 peças", SwingConstants.CENTER);
+        lblPecasJ1 = new JLabel("", SwingConstants.CENTER);
         lblPecasJ1.setFont(new Font("Arial", Font.BOLD, 12));
         lblPecasJ1.setOpaque(true);
         lblPecasJ1.setBackground(Color.WHITE);
         lblPecasJ1.setBorder(BorderFactory.createEtchedBorder());
 
-        lblPecasJ2 = new JLabel("Jogador 2: 0 peças", SwingConstants.CENTER);
+        lblPecasJ2 = new JLabel("", SwingConstants.CENTER);
         lblPecasJ2.setFont(new Font("Arial", Font.BOLD, 12));
         lblPecasJ2.setOpaque(true);
         lblPecasJ2.setBackground(Color.BLACK);
         lblPecasJ2.setForeground(Color.WHITE);
         lblPecasJ2.setBorder(BorderFactory.createEtchedBorder());
 
-        lblRodadas = new JLabel("Rodadas sem captura: 0", SwingConstants.CENTER);
+        lblRodadas = new JLabel("", SwingConstants.CENTER);
         lblRodadas.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        
+        // Botões do tabuleiro
         botoes = new JButton[5][5];
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
@@ -88,11 +84,8 @@ public class JogoView extends JFrame implements Observer {
                 botoes[i][j].setPreferredSize(new Dimension(80, 80));
                 botoes[i][j].setFont(new Font("Arial", Font.BOLD, 20));
                 
-                if (i == 2 && j == 2) {
-                    
+                if (controller.isCasaCentral(i, j)) {
                     botoes[i][j].setBackground(new Color(180, 180, 180));
-                    botoes[i][j].setText("✦");
-                   
                 } else {
                     botoes[i][j].setBackground(Color.LIGHT_GRAY);
                 }
@@ -101,7 +94,7 @@ public class JogoView extends JFrame implements Observer {
     }
 
     private void configurarLayout() {
-       
+        // Painel superior
         JPanel painelSuperior = new JPanel(new GridLayout(2, 1, 5, 5));
         painelSuperior.setBorder(BorderFactory.createTitledBorder("Status"));
         painelSuperior.add(lblStatus);
@@ -120,7 +113,7 @@ public class JogoView extends JFrame implements Observer {
         }
         add(painelTabuleiro, BorderLayout.CENTER);
 
-        
+        // Painel inferior
         JPanel painelInferior = new JPanel(new GridLayout(1, 3, 10, 5));
         painelInferior.setBorder(BorderFactory.createTitledBorder("Estatísticas"));
         painelInferior.add(lblPecasJ1);
@@ -128,7 +121,6 @@ public class JogoView extends JFrame implements Observer {
         painelInferior.add(lblRodadas);
         add(painelInferior, BorderLayout.SOUTH);
 
-        
         criarMenu();
     }
 
@@ -161,10 +153,9 @@ public class JogoView extends JFrame implements Observer {
                 final int coluna = j;
 
                 botoes[i][j].addActionListener(e -> {
-                    
-                    if (jogo.getEstado() == Estado.POSICIONANDO) {
+                    if (controller.getEstado() == Estado.POSICIONANDO) {
                         controller.colocarPeca(linha, coluna);
-                    } else if (jogo.getEstado() == Estado.JOGANDO) {
+                    } else if (controller.getEstado() == Estado.JOGANDO) {
                         controller.selecionarOuMover(linha, coluna);
                     }
                 });
@@ -172,14 +163,14 @@ public class JogoView extends JFrame implements Observer {
         }
     }
 
-    
+    // ======== Observer Methods ========
 
     @Override
     public void onPecaColocada(int linha, int coluna, Jogador jogador) {
         atualizarBotaoTabuleiro(linha, coluna);
         atualizarEstatisticas();
         
-       
+        // Animação de colocação
         botoes[linha][coluna].setBackground(Color.GREEN);
         Timer timer = new Timer(200, e -> atualizarBotaoTabuleiro(linha, coluna));
         timer.setRepeats(false);
@@ -188,12 +179,11 @@ public class JogoView extends JFrame implements Observer {
 
     @Override
     public void onPecaMovida(int linhaOrigem, int colunaOrigem, int linhaDestino, int colunaDestino, Jogador jogador) {
-        
         atualizarBotaoTabuleiro(linhaOrigem, colunaOrigem);
         atualizarBotaoTabuleiro(linhaDestino, colunaDestino);
         atualizarEstatisticas();
         
-        
+        // Animação de movimento
         botoes[linhaDestino][colunaDestino].setBackground(Color.CYAN);
         Timer timer = new Timer(300, e -> atualizarBotaoTabuleiro(linhaDestino, colunaDestino));
         timer.setRepeats(false);
@@ -202,7 +192,7 @@ public class JogoView extends JFrame implements Observer {
 
     @Override
     public void onPecaCapturada(int linha, int coluna, Jogador jogadorCapturado, Jogador jogadorCapturador) {
-        
+        // Animação de captura
         botoes[linha][coluna].setBackground(Color.RED);
         Timer timer = new Timer(400, e -> {
             atualizarBotaoTabuleiro(linha, coluna);
@@ -211,7 +201,7 @@ public class JogoView extends JFrame implements Observer {
         timer.setRepeats(false);
         timer.start();
         
-        
+        // Notificação
         JOptionPane.showMessageDialog(this,
             "Jogador " + jogadorCapturador.getId() + " capturou uma peça!",
             "Captura!",
@@ -221,7 +211,7 @@ public class JogoView extends JFrame implements Observer {
     @Override
     public void onPecaSelecionada(int linha, int coluna, Jogador jogador) {
         atualizarTabuleiroCompleto();
-        botoes[linha][coluna].setBackground(Color.YELLOW);
+        botoes[linha][coluna].setBackground(controller.obterCorSelecionada());
     }
 
     @Override
@@ -231,46 +221,36 @@ public class JogoView extends JFrame implements Observer {
 
     @Override
     public void onTurnoMudou(Jogador novoJogador) {
-        lblTurno.setText("Turno: Jogador " + novoJogador.getId());
-        
-        if (novoJogador.getId() == 1) {
-            lblTurno.setBackground(Color.WHITE);
-            lblTurno.setForeground(Color.BLACK);
-        } else {
-            lblTurno.setBackground(Color.BLACK);
-            lblTurno.setForeground(Color.WHITE);
-        }
+        lblTurno.setText(controller.obterTextoTurno());
+        lblTurno.setBackground(controller.obterCorTurno());
+        lblTurno.setForeground(controller.obterCorTextoTurno());
     }
 
     @Override
     public void onEstadoMudou(Estado novoEstado, Estado estadoAnterior) {
+        lblStatus.setText(controller.obterTextoStatus());
+        
         if (novoEstado == Estado.JOGANDO) {
-            lblStatus.setText("Fase: Jogo - Mova suas peças");
-            
-            
-            botoes[2][2].setEnabled(true);
+            // Habilita casa central
+            botoes[2][2].setEnabled(controller.deveHabilitarCasaCentral());
             
             JOptionPane.showMessageDialog(this,
                 "Posicionamento concluído!\nAgora mova suas peças.",
                 "Nova Fase!",
                 JOptionPane.INFORMATION_MESSAGE);
-        } else if (novoEstado == Estado.FIM) {
-            lblStatus.setText("Jogo Terminado");
         }
     }
 
     @Override
     public void onJogoTerminado(Jogador vencedor) {
+        lblStatus.setText(controller.obterTextoStatus());
+        
         if (vencedor == null) {
-            
-            lblStatus.setText("Empate");
             JOptionPane.showMessageDialog(this,
                 "Empate! Jogo terminou empatado.\n\nJogar novamente?",
                 "Empate",
                 JOptionPane.INFORMATION_MESSAGE);
         } else {
-           
-            lblStatus.setText("Vencedor: Jogador " + vencedor.getId());
             JOptionPane.showMessageDialog(this,
                 "Jogador " + vencedor.getId() + " venceu!\n\nJogar novamente?",
                 "Fim de Jogo",
@@ -280,37 +260,27 @@ public class JogoView extends JFrame implements Observer {
 
     @Override
     public void onMovimentoInvalido(String motivo) {
-        
-        lblStatus.setText("x " + motivo);
+        lblStatus.setText("✗ " + motivo);
         lblStatus.setForeground(Color.RED);
         
         Timer timer = new Timer(2500, e -> {
-            String estado = (jogo.getEstado() == Estado.POSICIONANDO) ? 
-                           "Fase: Posicionamento" : "Fase: Jogo";
-            lblStatus.setText(estado);
+            lblStatus.setText(controller.obterTextoStatus());
             lblStatus.setForeground(Color.BLACK);
         });
         timer.setRepeats(false);
         timer.start();
     }
 
-   
+    // ======== Métodos de Atualização ========
 
     private void atualizarInterfaceCompleta() {
         atualizarTabuleiroCompleto();
         atualizarEstatisticas();
         
-       
-        lblStatus.setText("Fase: " + (jogo.getEstado() == Estado.POSICIONANDO ? "Posicionamento" : "Jogo"));
-        lblTurno.setText("Turno: Jogador " + jogo.getJogadorAtual().getId());
-        
-        if (jogo.getJogadorAtual().getId() == 1) {
-            lblTurno.setBackground(Color.WHITE);
-            lblTurno.setForeground(Color.BLACK);
-        } else {
-            lblTurno.setBackground(Color.BLACK);
-            lblTurno.setForeground(Color.WHITE);
-        }
+        lblStatus.setText(controller.obterTextoStatus());
+        lblTurno.setText(controller.obterTextoTurno());
+        lblTurno.setBackground(controller.obterCorTurno());
+        lblTurno.setForeground(controller.obterCorTextoTurno());
     }
 
     private void atualizarTabuleiroCompleto() {
@@ -322,46 +292,19 @@ public class JogoView extends JFrame implements Observer {
     }
 
     private void atualizarBotaoTabuleiro(int linha, int coluna) {
-        Peca peca = jogo.getPeca(linha, coluna);
-        
-        if (jogo.isCasaCentral(linha, coluna)) {
-           
-            if (peca != null) {
-               
-                int jogadorId = peca.getDono().getId();
-                botoes[linha][coluna].setBackground(jogadorId == 1 ? Color.WHITE : Color.BLACK);
-                botoes[linha][coluna].setText("●");
-            } else {
-                
-                botoes[linha][coluna].setBackground(new Color(180, 180, 180));
-                botoes[linha][coluna].setText("✦");
-            }
-            return;
-        }
-        
-      
-        if (peca != null) {
-            int jogadorId = peca.getDono().getId();
-            botoes[linha][coluna].setBackground(jogadorId == 1 ? Color.WHITE : Color.BLACK);
-            botoes[linha][coluna].setText("●");
-        } else {
-            botoes[linha][coluna].setBackground(Color.LIGHT_GRAY);
-            botoes[linha][coluna].setText("");
-        }
+        botoes[linha][coluna].setText(controller.obterTextoBotao(linha, coluna));
+        botoes[linha][coluna].setBackground(controller.obterCorBotao(linha, coluna));
 
-      
-        if (linha == jogo.getSelecionadaLinha() && coluna == jogo.getSelecionadaColuna()) {
-            botoes[linha][coluna].setBackground(Color.YELLOW);
+        // Destaque para peça selecionada
+        if (controller.estaSelecionada(linha, coluna)) {
+            botoes[linha][coluna].setBackground(controller.obterCorSelecionada());
         }
     }
 
     private void atualizarEstatisticas() {
-        int pecasJ1 = jogo.contarPecasNoTabuleiro(jogo.getJogador1());
-        int pecasJ2 = jogo.contarPecasNoTabuleiro(jogo.getJogador2());
-        
-        lblPecasJ1.setText("Jogador 1: " + pecasJ1 + " peças");
-        lblPecasJ2.setText("Jogador 2: " + pecasJ2 + " peças");
-        lblRodadas.setText("Rodadas sem captura: " + jogo.getJogadasSemCaptura());
+        lblPecasJ1.setText(controller.obterTextoPecasJ1());
+        lblPecasJ2.setText(controller.obterTextoPecasJ2());
+        lblRodadas.setText(controller.obterTextoRodadas());
     }
 
     private void mostrarRegras() {
@@ -381,7 +324,6 @@ public class JogoView extends JFrame implements Observer {
         JOptionPane.showMessageDialog(this, scrollPane, "Como Jogar", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // se pa, q o atualizar n vai mais precisar mas eu vejo despues
     @Override
     public void atualizar() {
         atualizarInterfaceCompleta();
