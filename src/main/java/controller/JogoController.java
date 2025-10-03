@@ -16,7 +16,7 @@ public class JogoController {
         this.publicador = new Publicador();
     }
 
-    // ======== Observer ========
+   
     
     public void adicionarObserver(Observer observer) {
         publicador.adicionarObserver(observer);
@@ -26,7 +26,7 @@ public class JogoController {
         publicador.removerObserver(observer);
     }
 
-    // ======== Helpers de regra ========
+   
 
     public boolean posicaoValida(int linha, int coluna) {
         return linha >= 0 && linha < 5 && coluna >= 0 && coluna < 5;
@@ -75,8 +75,6 @@ public class JogoController {
         return posicoes;
     }
 
-    // ======== Helpers de contadores ========
-
     public void incrementarPecasColocadas() {
         jogo.setPecasColocadas(jogo.getPecasColocadas() + 1);
     }
@@ -96,8 +94,6 @@ public class JogoController {
     public void zerarPecasTurno() {
         jogo.setPecasTurno(0);
     }
-
-    // ======== Métodos de acesso ao Model ========
 
     public Peca getPeca(int linha, int coluna) {
         return jogo.getPeca(linha, coluna);
@@ -155,87 +151,6 @@ public class JogoController {
         jogo.limparSelecao();
     }
 
-    // ======== Lógica de Interface ========
-
-    public String obterTextoStatus() {
-        switch (jogo.getEstado()) {
-            case POSICIONANDO:
-                return "Fase: Posicionamento";
-            case JOGANDO:
-                return "Fase: Jogo - Mova suas peças";
-            case FIM:
-                return "Jogo Terminado";
-            default:
-                return "Estado desconhecido";
-        }
-    }
-
-    public String obterTextoTurno() {
-        return "Turno: Jogador " + jogo.getJogadorAtual().getId();
-    }
-
-    public String obterTextoPecasJ1() {
-        return "Jogador 1: " + contarPecasNoTabuleiro(jogo.getJogador1()) + " peças";
-    }
-
-    public String obterTextoPecasJ2() {
-        return "Jogador 2: " + contarPecasNoTabuleiro(jogo.getJogador2()) + " peças";
-    }
-
-    public String obterTextoRodadas() {
-        return "Rodadas sem captura: " + jogo.getJogadasSemCaptura();
-    }
-
-    public boolean deveHabilitarCasaCentral() {
-        return jogo.getEstado() == Estado.JOGANDO;
-    }
-
-    public String obterTextoBotao(int linha, int coluna) {
-        if (isCasaCentral(linha, coluna)) {
-            Peca peca = jogo.getPeca(linha, coluna);
-            return peca != null ? "●" : "✦";
-        } else {
-            Peca peca = jogo.getPeca(linha, coluna);
-            return peca != null ? "●" : "";
-        }
-    }
-
-    public java.awt.Color obterCorBotao(int linha, int coluna) {
-        Peca peca = jogo.getPeca(linha, coluna);
-        
-        if (isCasaCentral(linha, coluna)) {
-            if (peca != null) {
-                return peca.getDono().getId() == 1 ? java.awt.Color.WHITE : java.awt.Color.BLACK;
-            } else {
-                return new java.awt.Color(180, 180, 180);
-            }
-        }
-        
-        if (peca != null) {
-            return peca.getDono().getId() == 1 ? java.awt.Color.WHITE : java.awt.Color.BLACK;
-        } else {
-            return java.awt.Color.LIGHT_GRAY;
-        }
-    }
-
-    public java.awt.Color obterCorSelecionada() {
-        return java.awt.Color.YELLOW;
-    }
-
-    public boolean estaSelecionada(int linha, int coluna) {
-        return linha == jogo.getSelecionadaLinha() && coluna == jogo.getSelecionadaColuna();
-    }
-
-    public java.awt.Color obterCorTurno() {
-        return jogo.getJogadorAtual().getId() == 1 ? java.awt.Color.WHITE : java.awt.Color.BLACK;
-    }
-
-    public java.awt.Color obterCorTextoTurno() {
-        return jogo.getJogadorAtual().getId() == 1 ? java.awt.Color.BLACK : java.awt.Color.WHITE;
-    }
-
-    // ======== Fluxo principal ========
-
     public boolean colocarPeca(int linha, int coluna) {
         if (!validarFasePositionamento()) return false;
         if (!validarPosicaoParaColocar(linha, coluna)) return false;
@@ -254,7 +169,17 @@ public class JogoController {
         if (jogo.getSelecionadaLinha() == -1) {
             return tentarSelecionarPeca(linha, coluna);
         } else {
-            return tentarMoverPeca(linha, coluna);
+            if (linha == jogo.getSelecionadaLinha() && coluna == jogo.getSelecionadaColuna()) {
+                jogo.limparSelecao();
+                publicador.notificarSelecaoRemovida();
+                return true;
+            } else if (temPecaDoJogador(jogo.getJogadorAtual(), linha, coluna)) {
+                jogo.setSelecionada(linha, coluna);
+                publicador.notificarPecaSelecionada(linha, coluna, jogo.getJogadorAtual());
+                return true;
+            } else {
+                return tentarMoverPeca(linha, coluna);
+            }
         }
     }
 
@@ -266,8 +191,6 @@ public class JogoController {
     public Jogo getJogo() {
         return jogo;
     }
-
-    // ======== Validações ========
 
     private boolean validarFasePositionamento() {
         if (jogo.getEstado() != Estado.POSICIONANDO) {
@@ -324,7 +247,7 @@ public class JogoController {
             return false;
         }
         if (jogo.getPeca(linhaDestino, colunaDestino) != null) {
-            publicador.notificarMovimentoInvalido("Casa de destino já está ocupada");
+            publicador.notificarMovimentoInvalido("Casa de destino já esta ocupada");
             return false;
         }
         int linhaOrigem = jogo.getSelecionadaLinha();
@@ -337,7 +260,6 @@ public class JogoController {
         return true;
     }
 
-    // ======== Execução ========
 
     private void executarColocacaoPeca(int linha, int coluna) {
         Peca novaPeca = new Peca(jogo.getJogadorAtual());
@@ -432,7 +354,6 @@ public class JogoController {
         publicador.notificarPecaCapturada(linha, coluna, jogadorCapturado, jogadorCapturador);
     }
 
-    // ======== Turnos e fases ========
 
     private void verificarMudancaTurno() {
         if (jogo.getPecasTurno() >= 2) {
@@ -480,7 +401,7 @@ public class JogoController {
         Jogador jogadorAtual = jogo.getJogadorAtual();
         Jogador outroJogador = getOutroJogador();
 
-        publicador.notificarMovimentoInvalido("Jogador " + jogadorAtual.getId() + " não tem movimentos possíveis");
+        publicador.notificarMovimentoInvalido("Jogador " + jogadorAtual.getId() + " nao tem movimentos possiveis");
 
         if (!temMovimentosPossiveis(outroJogador)) {
             finalizarJogo(null);
@@ -489,8 +410,6 @@ public class JogoController {
             publicador.notificarTurnoMudou(outroJogador);
         }
     }
-
-    // ======== Finalização ========
 
     private void verificarFimDeJogo() {
         if (jogo.getJogador1().getPecas().isEmpty()) {
@@ -526,7 +445,6 @@ public class JogoController {
         publicador.notificarJogoTerminado(vencedor);
     }
 
-    // ======== Util ========
 
     private boolean temMovimentosPossiveis(Jogador jogador) {
         List<int[]> posicoesPecas = getPosicoesDasPecas(jogador);
@@ -549,15 +467,15 @@ public class JogoController {
         System.out.println("=== ESTADO DO JOGO ===");
         System.out.println("Estado: " + jogo.getEstado());
         System.out.println("Jogador Atual: " + jogo.getJogadorAtual().getId());
-        System.out.println("Peças Colocadas: " + jogo.getPecasColocadas() + "/24");
-        System.out.println("Peças por Turno: " + jogo.getPecasTurno() + "/2");
+        System.out.println("Pecas Colocadas: " + jogo.getPecasColocadas() + "/24");
+        System.out.println("Pecas por Turno: " + jogo.getPecasTurno() + "/2");
         System.out.println("Jogadas sem Captura: " + jogo.getJogadasSemCaptura() + "/20");
-        System.out.println("Peças J1: " + contarPecasNoTabuleiro(jogo.getJogador1()));
-        System.out.println("Peças J2: " + contarPecasNoTabuleiro(jogo.getJogador2()));
+        System.out.println("Pecas J1: " + contarPecasNoTabuleiro(jogo.getJogador1()));
+        System.out.println("Pecas J2: " + contarPecasNoTabuleiro(jogo.getJogador2()));
     }
 
     public void debugTabuleiro() {
-        System.out.println("=== TABULEIRO ===");
+        System.out.println("TABULEIRO");
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 Peca peca = jogo.getPeca(i, j);
@@ -569,6 +487,6 @@ public class JogoController {
             }
             System.out.println();
         }
-        System.out.println("================");
+        System.out.println("");
     }
 }
