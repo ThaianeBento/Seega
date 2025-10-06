@@ -53,4 +53,5 @@ Implementação em Java do Seega, jogo de tabuleiro estratégico. O projeto repr
 - `src/main/java/view` – interface Swing.
 
 
-
+## Referências
+- Regras do jogo obtidas a partir do projeto [Ondjango Asili](https://ondjangoasili.com/index.php/seega/) oriundo do projeto de extensão do Departamento de Matemática da UFBA.
